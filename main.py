@@ -30,6 +30,8 @@ def create_tocs_dict(file_tocs_list):
             chapter_num += 1
             section_num = 0
             tocs_dict[str(chapter_num)] = {'title': title, 'sections': {}}
+            if file_tocs_list[id + 1][0] == 1:
+                tocs_dict[str(chapter_num)] = {'text': f"{get_text(id)}"}
         
         elif lvl == 2:
             if re.match(r"^\d+\.\d+", title):
@@ -37,7 +39,7 @@ def create_tocs_dict(file_tocs_list):
                 subsection_num = 0
                 sec_title =  title.split(' ', 1)
                 tocs_dict[str(chapter_num)]['sections'].update(
-                    {f"{sec_title[0]}": {'title': sec_title[1], 'text': f"get_text(id)", 'subsections': {}}}
+                    {f"{sec_title[0]}": {'title': sec_title[1], 'text': f"{get_text(id)}", 'subsections': {}}}
                 )
         
         elif lvl == 3:
@@ -46,18 +48,36 @@ def create_tocs_dict(file_tocs_list):
             if re.match(r"^\d+\.\d+\.\d+", title):
                 subsec_title =  title.split(' ', 1)
                 tocs_dict[str(chapter_num)]['sections'][sec_title[0]] \
-                    ['subsections'][subsec_title[0]] = {'title': subsec_title[1], 'text': f"get_text(id)"}
+                    ['subsections'][subsec_title[0]] = {'title': subsec_title[1], 'text': f"{get_text(id)}"}
     
     return tocs_dict
 
 
 def get_text(id):
     lvl = file_titles[id][0]
-    title = file_titles[id][1]
-    page = file_titles[id][2]
-    text = (file.load_page(page - 1)).get_text()
+    cur_title = file_titles[id][1].split(' ', 1)
+    next_title = file_titles[id + 1][1].split(' ', 1) if id + 1 < len(file_titles) else None
+    cur_page = file_titles[id][2]
+    # Если уже нет заголовков читаем до последней страницы 
+    # (в будущем улучшить, т.к. может быть раздел "Источники" и т.д.)
+    next_page = file_titles[id + 1][2] if id + 1 < len(file_titles) else file.page_count
+    text = ""
     
-    # print(text)
+    for i in range(cur_page, next_page if lvl == 1 else next_page + 1):
+        temp_text = (file.load_page(i - 1)).get_text()
+        text += temp_text.strip()
+    
+    
+    text_start_idx = text.find(f"{cur_title[0]}") + 1 + len(' '.join(cur_title))
+    text_end_idx = text.rfind(f"{next_title[0]}") if next_title else len(text)
+    text = text[text_start_idx:text_end_idx].strip()
+    
+    with open('text.txt', 'w+', encoding='utf-8') as f:
+        print(text, file=f)
+        print(file=f)
+        print("-"*100, file=f)
+        
+    return text
 
 
 if __name__ == '__main__':
@@ -66,11 +86,11 @@ if __name__ == '__main__':
     with fz.open(file_dir) as file:
         file_titles = pdf_get_titles(file)
         tocs_dict = create_tocs_dict(file_titles)
-        get_text(0)
+        # get_text(2)
     
-    with open('out.txt', 'w+', encoding='utf-8') as f:
-        for el in file_titles:
-            print(el, file=f)
+    # with open('out.txt', 'w+', encoding='utf-8') as f:
+    #     for el in file_titles:
+    #         print(el, file=f)
     
     with open('./structure.json', 'w+', encoding='utf-8') as f:
         json.dump(tocs_dict, f, ensure_ascii=False, indent=4)
