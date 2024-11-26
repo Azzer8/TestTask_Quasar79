@@ -9,6 +9,11 @@ def pdf_get_titles(file):
     for i in range(len(file_tocs) - 1, 0, -1):
         if file_tocs[i-1][0] == file_tocs[i][0] == 1:
             del file_tocs[i-1]
+        
+        # Удалить из списка заголовков подзаголовки без нумерации
+        if not re.match(r"^\d+\.\d+", file_tocs[i][1]) and file_tocs[i][0] != 1:
+            del file_tocs[i]
+        
     
     return file_tocs
 
@@ -34,17 +39,6 @@ def create_tocs_dict(file_tocs_list):
                 tocs_dict[str(chapter_num)]['sections'].update(
                     {f"{sec_title[0]}": {'title': sec_title[1], 'text': f"get_text(id)", 'subsections': {}}}
                 )
-                    
-            else: # для глав, где нет 2 и 3 уровня заголовка, но есть 4 уровень
-                # subsection_num += 1
-                
-                # if 'subsections' not in tocs_dict[str(chapter_num)]['sections']:
-                #     tocs_dict[str(chapter_num)]['sections'] = {'subsections': {}}
-                
-                # tocs_dict[str(chapter_num)]['sections']['subsections'].update({
-                #     str(subsection_num): {'title': title, 'text': f"{get_text(id)}"}}
-                # )
-                pass
         
         elif lvl == 3:
             subsection_num += 1
@@ -53,21 +47,17 @@ def create_tocs_dict(file_tocs_list):
                 subsec_title =  title.split(' ', 1)
                 tocs_dict[str(chapter_num)]['sections'][sec_title[0]] \
                     ['subsections'][subsec_title[0]] = {'title': subsec_title[1], 'text': f"get_text(id)"}
-            
-            else: # для глав, где нет 2 и 3 уровней заголовка, но есть 4 уровень
-                pass
-        
-        elif lvl == 4: # Что с ними? Пока как обычный текст
-            pass
     
     return tocs_dict
 
 
 def get_text(id):
+    lvl = file_titles[id][0]
     title = file_titles[id][1]
     page = file_titles[id][2]
     text = (file.load_page(page - 1)).get_text()
-    print(text)
+    
+    # print(text)
 
 
 if __name__ == '__main__':
