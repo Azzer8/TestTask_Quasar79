@@ -89,19 +89,19 @@ def get_text(id):
     
     # Ищем индекс текущего заголовка в тексте страницы 
     # и прибавляем его длину к найденному индексу
-    text_start_idx = text.lower().find(f"{cur_title[0].lower()}") \
+    text_start_idx = text.lower().find(f"{cur_title[0].lower()} ") \
                             + len(' '.join(cur_title) if len(cur_title) != 1 else cur_title[0])
     
     # Ищем индекс следующего заголовка в тексте страницы
     # Если следующего заголовка нет, берем длину текста страницы
-    text_end_idx = text.lower().rfind(f"{next_title[0].lower()}") \
+    text_end_idx = text.lower().rfind(f"{next_title[0].lower()} ") \
                                                     if next_title[0] else len(text)
     
     if text_end_idx != -1:
         text = text[text_start_idx:text_end_idx].strip()
     else:
         text = text[text_start_idx:].strip()
-        
+    
     return text
 
 
@@ -113,15 +113,15 @@ if __name__ == '__main__':
             file_toc_list = pdf_get_toc(file)
             file_toc_dict = create_toc_dict(file_toc_list)
     except fz.FileNotFoundError:
-        print(f"Файл не найден: {FILE_DIR}")
+        print(f"Файл не найдет: {FILE_DIR}")
         exit()
     except fz.FileDataError:
         print(f"Некорректный файл: {FILE_DIR}")
         exit()
     
-    # with open('file_toc_list.txt', 'w+', encoding='utf-8') as f:
-    #     for el in file_toc_list:
-    #         print(el, file=f)
+    with open('file_toc_list.txt', 'w+', encoding='utf-8') as f:
+        for el in file_toc_list:
+            print(el, file=f)
     
     with open('./structure.json', 'w+', encoding='utf-8') as f:
         json.dump(file_toc_dict, f, ensure_ascii=False, indent=4)
