@@ -113,7 +113,7 @@ if __name__ == '__main__':
             file_toc_list = pdf_get_toc(file)
             file_toc_dict = create_toc_dict(file_toc_list)
     except fz.FileNotFoundError:
-        print(f"Файл не найдет: {FILE_DIR}")
+        print(f"Файл не найден: {FILE_DIR}")
         exit()
     except fz.FileDataError:
         print(f"Некорректный файл: {FILE_DIR}")
